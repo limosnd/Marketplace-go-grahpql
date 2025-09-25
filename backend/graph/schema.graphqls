@@ -1,0 +1,120 @@
+# GraphQL Schema for Marketplace
+
+type User {
+  id: ID!
+  username: String!
+  email: String!
+  createdAt: String!
+}
+
+type Product {
+  id: ID!
+  name: String!
+  description: String!
+  price: Float!
+  imageUrl: String
+  category: String!
+  sellerId: ID!
+  seller: User!
+  createdAt: String!
+}
+
+type CartItem {
+  id: ID!
+  productId: ID!
+  product: Product!
+  quantity: Int!
+  userId: ID!
+}
+
+type Order {
+  id: ID!
+  userId: ID!
+  user: User!
+  items: [OrderItem!]!
+  total: Float!
+  status: OrderStatus!
+  createdAt: String!
+}
+
+type OrderItem {
+  id: ID!
+  productId: ID!
+  product: Product!
+  quantity: Int!
+  price: Float!
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+input CreateUserInput {
+  username: String!
+  email: String!
+}
+
+input CreateProductInput {
+  name: String!
+  description: String!
+  price: Float!
+  imageUrl: String
+  category: String!
+  sellerId: ID!
+}
+
+input AddToCartInput {
+  productId: ID!
+  quantity: Int!
+  userId: ID!
+}
+
+input CreateOrderInput {
+  userId: ID!
+  items: [OrderItemInput!]!
+}
+
+input OrderItemInput {
+  productId: ID!
+  quantity: Int!
+}
+
+type Query {
+  # User queries
+  users: [User!]!
+  user(id: ID!): User
+  
+  # Product queries
+  products: [Product!]!
+  product(id: ID!): Product
+  productsByCategory(category: String!): [Product!]!
+  
+  # Cart queries
+  userCart(userId: ID!): [CartItem!]!
+  
+  # Order queries
+  orders: [Order!]!
+  order(id: ID!): Order
+  userOrders(userId: ID!): [Order!]!
+}
+
+type Mutation {
+  # User mutations
+  createUser(input: CreateUserInput!): User!
+  
+  # Product mutations
+  createProduct(input: CreateProductInput!): Product!
+  
+  # Cart mutations
+  addToCart(input: AddToCartInput!): CartItem!
+  removeFromCart(id: ID!): Boolean!
+  clearCart(userId: ID!): Boolean!
+  
+  # Order mutations
+  createOrder(input: CreateOrderInput!): Order!
+  updateOrderStatus(id: ID!, status: OrderStatus!): Order!
+}

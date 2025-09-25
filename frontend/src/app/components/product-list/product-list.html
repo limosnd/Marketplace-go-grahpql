@@ -1,0 +1,15 @@
+<div class="product-list">
+  <h2>Products</h2>
+  <div class="products-grid" *ngIf="products$ | async as products">
+    <div class="product-card" *ngFor="let product of products">
+      <h3>{{ product.name }}</h3>
+      <p class="description">{{ product.description }}</p>
+      <p class="price">${{ product.price }}</p>
+      <p class="category">Category: {{ product.category }}</p>
+      <p class="created">Created: {{ product.createdAt | date }}</p>
+    </div>
+  </div>
+  <div *ngIf="!(products$ | async)?.length" class="no-products">
+    No products available
+  </div>
+</div>
