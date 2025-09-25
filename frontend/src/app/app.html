@@ -2,13 +2,14 @@
   <header class="app-header">
     <h1>{{ title() }}</h1>
     <nav>
-      <a href="#products">Products</a>
-      <a href="#users">Users</a>
+      <a href="#" (click)="showProducts()" [class.active]="currentView() === 'products'">Products</a>
+      <a href="#" (click)="showUsers()" [class.active]="currentView() === 'users'">Users</a>
     </nav>
   </header>
   
   <main class="app-content">
-    <app-product-list></app-product-list>
+    <app-product-list *ngIf="currentView() === 'products'"></app-product-list>
+    <app-user-form *ngIf="currentView() === 'users'"></app-user-form>
     <router-outlet></router-outlet>
   </main>
 </div>

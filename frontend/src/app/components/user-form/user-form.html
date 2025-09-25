@@ -1,1 +1,51 @@
-<p>user-form works!</p>
+<div class="user-form">
+  <h3>Create New User</h3>
+  <form (ngSubmit)="onSubmit()" #userForm="ngForm">
+    <div class="form-group">
+      <label for="username">Username:</label>
+      <input 
+        type="text" 
+        id="username" 
+        name="username"
+        [(ngModel)]="userInput.username"
+        required
+        #username="ngModel"
+        class="form-control"
+        [class.error]="username.invalid && username.touched"
+      >
+      <div *ngIf="username.invalid && username.touched" class="error-message">
+        Username is required
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email:</label>
+      <input 
+        type="email" 
+        id="email" 
+        name="email"
+        [(ngModel)]="userInput.email"
+        required
+        email
+        #email="ngModel"
+        class="form-control"
+        [class.error]="email.invalid && email.touched"
+      >
+      <div *ngIf="email.invalid && email.touched" class="error-message">
+        Valid email is required
+      </div>
+    </div>
+
+    <button 
+      type="submit" 
+      class="btn btn-primary"
+      [disabled]="userForm.invalid || isSubmitting"
+    >
+      {{ isSubmitting ? 'Creating...' : 'Create User' }}
+    </button>
+
+    <div *ngIf="message" class="message" [class.success]="message.includes('successfully')" [class.error]="!message.includes('successfully')">
+      {{ message }}
+    </div>
+  </form>
+</div>

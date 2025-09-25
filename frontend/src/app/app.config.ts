@@ -4,6 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideApollo } from 'apollo-angular';
 import { HttpLink } from 'apollo-angular/http';
 import { InMemoryCache } from '@apollo/client/core';
+import { inject } from '@angular/core';
 
 import { routes } from './app.routes';
 
@@ -14,12 +15,12 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(),
     provideApollo(() => {
-      const httpLink = new HttpLink({
-        uri: 'http://localhost:8080/query'
-      });
+      const httpLink = inject(HttpLink);
       
       return {
-        link: httpLink.create({}),
+        link: httpLink.create({
+          uri: 'http://localhost:8080/query'
+        }),
         cache: new InMemoryCache()
       };
     })

@@ -29,7 +29,8 @@
   transition: background-color 0.3s;
 }
 
-.app-header nav a:hover {
+.app-header nav a:hover,
+.app-header nav a.active {
   background-color: #34495e;
 }
 
