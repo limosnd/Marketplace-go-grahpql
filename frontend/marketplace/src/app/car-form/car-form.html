@@ -1,0 +1,310 @@
+<div class="car-form-container">
+  <!-- Header -->
+  <div class="header">
+    <h1 class="title">Vender tu Carro</h1>
+    <p class="subtitle">Completa los datos de tu vehículo para publicar tu anuncio</p>
+  </div>
+
+  <!-- Success Message -->
+  <div *ngIf="submitSuccess" class="success-message">
+    <div class="success-icon">✓</div>
+    <h3>¡Anuncio creado exitosamente!</h3>
+    <p>Tu carro ha sido publicado en el marketplace. Serás redirigido en unos segundos...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="submitError" class="error-message">
+    <div class="error-icon">✕</div>
+    <h3>Error al crear el anuncio</h3>
+    <p>{{ submitError }}</p>
+    <button class="btn btn-outline" (click)="submitError = null">Cerrar</button>
+  </div>
+
+  <!-- Form -->
+  <form [formGroup]="carForm" (ngSubmit)="onSubmit()" *ngIf="!submitSuccess" class="car-form">
+    
+    <!-- Información Básica -->
+    <div class="form-section">
+      <h2 class="section-title">Información Básica</h2>
+      
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="title">Título del anuncio *</label>
+          <input 
+            type="text" 
+            id="title" 
+            formControlName="title" 
+            class="form-control"
+            [class.invalid]="isFieldInvalid('title')"
+            placeholder="Ej: Toyota Corolla 2020 - Excelente estado">
+          <div class="error-text" *ngIf="isFieldInvalid('title')">{{ getFieldError('title') }}</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="brand">Marca *</label>
+          <select 
+            id="brand" 
+            formControlName="brand" 
+            class="form-control"
+            [class.invalid]="isFieldInvalid('brand')">
+            <option value="">Selecciona una marca</option>
+            <option *ngFor="let brand of brands" [value]="brand">{{ brand }}</option>
+          </select>
+          <div class="error-text" *ngIf="isFieldInvalid('brand')">{{ getFieldError('brand') }}</div>
+        </div>
+
+        <div class="form-group">
+          <label for="model">Modelo *</label>
+          <input 
+            type="text" 
+            id="model" 
+            formControlName="model" 
+            class="form-control"
+            [class.invalid]="isFieldInvalid('model')"
+            placeholder="Ej: Corolla, Civic, etc.">
+          <div class="error-text" *ngIf="isFieldInvalid('model')">{{ getFieldError('model') }}</div>
+        </div>
+
+        <div class="form-group">
+          <label for="year">Año *</label>
+          <input 
+            type="number" 
+            id="year" 
+            formControlName="year" 
+            class="form-control"
+            [class.invalid]="isFieldInvalid('year')"
+            [min]="1900" 
+            [max]="maxYear"
+            placeholder="2020">
+          <div class="error-text" *ngIf="isFieldInvalid('year')">{{ getFieldError('year') }}</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="description">Descripción</label>
+          <textarea 
+            id="description" 
+            formControlName="description" 
+            class="form-control"
+            rows="4"
+            placeholder="Describe las características principales de tu carro, estado, extras incluidos, etc."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Especificaciones Técnicas -->
+    <div class="form-section">
+      <h2 class="section-title">Especificaciones Técnicas</h2>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="fuelType">Tipo de Combustible *</label>
+          <select 
+            id="fuelType" 
+            formControlName="fuelType" 
+            class="form-control"
+            [class.invalid]="isFieldInvalid('fuelType')">
+            <option value="">Selecciona el combustible</option>
+            <option *ngFor="let fuel of fuelTypes" [value]="fuel.value">{{ fuel.label }}</option>
+          </select>
+          <div class="error-text" *ngIf="isFieldInvalid('fuelType')">{{ getFieldError('fuelType') }}</div>
+        </div>
+
+        <div class="form-group">
+          <label for="transmission">Transmisión *</label>
+          <select 
+            id="transmission" 
+            formControlName="transmission" 
+            class="form-control"
+            [class.invalid]="isFieldInvalid('transmission')">
+            <option value="">Selecciona la transmisión</option>
+            <option *ngFor="let trans of transmissions" [value]="trans.value">{{ trans.label }}</option>
+          </select>
+          <div class="error-text" *ngIf="isFieldInvalid('transmission')">{{ getFieldError('transmission') }}</div>
+        </div>
+
+        <div class="form-group">
+          <label for="color">Color *</label>
+          <select 
+            id="color" 
+            formControlName="color" 
+            class="form-control"
+            [class.invalid]="isFieldInvalid('color')">
+            <option value="">Selecciona el color</option>
+            <option *ngFor="let color of colors" [value]="color">{{ color }}</option>
+          </select>
+          <div class="error-text" *ngIf="isFieldInvalid('color')">{{ getFieldError('color') }}</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="mileage">Kilometraje *</label>
+          <input 
+            type="number" 
+            id="mileage" 
+            formControlName="mileage" 
+            class="form-control"
+            [class.invalid]="isFieldInvalid('mileage')"
+            min="0"
+            placeholder="50000">
+          <div class="error-text" *ngIf="isFieldInvalid('mileage')">{{ getFieldError('mileage') }}</div>
+        </div>
+
+        <div class="form-group">
+          <label for="price">Precio (COP) *</label>
+          <input 
+            type="number" 
+            id="price" 
+            formControlName="price" 
+            class="form-control"
+            [class.invalid]="isFieldInvalid('price')"
+            min="1000"
+            placeholder="50000000">
+          <div class="error-text" *ngIf="isFieldInvalid('price')">{{ getFieldError('price') }}</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="features">Características especiales</label>
+          <input 
+            type="text" 
+            id="features" 
+            formControlName="features" 
+            class="form-control"
+            placeholder="Aire acondicionado, GPS, Bluetooth, etc. (separadas por comas)">
+          <small class="help-text">Separa las características con comas</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Imagen -->
+    <div class="form-section">
+      <h2 class="section-title">Imagen</h2>
+      
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="imageUrl">URL de la imagen *</label>
+          <input 
+            type="url" 
+            id="imageUrl" 
+            formControlName="imageUrl" 
+            class="form-control"
+            [class.invalid]="isFieldInvalid('imageUrl')"
+            placeholder="https://ejemplo.com/imagen-del-carro.jpg">
+          <div class="error-text" *ngIf="isFieldInvalid('imageUrl')">{{ getFieldError('imageUrl') }}</div>
+          <small class="help-text">URL de una imagen del carro</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Información del Vendedor -->
+    <div class="form-section">
+      <h2 class="section-title">Información del Vendedor</h2>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="sellerName">Nombre completo *</label>
+          <input 
+            type="text" 
+            id="sellerName" 
+            formControlName="sellerName" 
+            class="form-control"
+            [class.invalid]="isFieldInvalid('sellerName')"
+            placeholder="Juan Pérez">
+          <div class="error-text" *ngIf="isFieldInvalid('sellerName')">{{ getFieldError('sellerName') }}</div>
+        </div>
+
+        <div class="form-group">
+          <label for="sellerPhone">Teléfono *</label>
+          <input 
+            type="tel" 
+            id="sellerPhone" 
+            formControlName="sellerPhone" 
+            class="form-control"
+            [class.invalid]="isFieldInvalid('sellerPhone')"
+            placeholder="+57 300 123 4567">
+          <div class="error-text" *ngIf="isFieldInvalid('sellerPhone')">{{ getFieldError('sellerPhone') }}</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="sellerEmail">Correo electrónico *</label>
+          <input 
+            type="email" 
+            id="sellerEmail" 
+            formControlName="sellerEmail" 
+            class="form-control"
+            [class.invalid]="isFieldInvalid('sellerEmail')"
+            placeholder="juan@ejemplo.com">
+          <div class="error-text" *ngIf="isFieldInvalid('sellerEmail')">{{ getFieldError('sellerEmail') }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ubicación -->
+    <div class="form-section">
+      <h2 class="section-title">Ubicación</h2>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="locationCity">Ciudad *</label>
+          <input 
+            type="text" 
+            id="locationCity" 
+            formControlName="locationCity" 
+            class="form-control"
+            [class.invalid]="isFieldInvalid('locationCity')"
+            placeholder="Bogotá">
+          <div class="error-text" *ngIf="isFieldInvalid('locationCity')">{{ getFieldError('locationCity') }}</div>
+        </div>
+
+        <div class="form-group">
+          <label for="locationState">Departamento *</label>
+          <input 
+            type="text" 
+            id="locationState" 
+            formControlName="locationState" 
+            class="form-control"
+            [class.invalid]="isFieldInvalid('locationState')"
+            placeholder="Cundinamarca">
+          <div class="error-text" *ngIf="isFieldInvalid('locationState')">{{ getFieldError('locationState') }}</div>
+        </div>
+
+        <div class="form-group">
+          <label for="locationCountry">País</label>
+          <input 
+            type="text" 
+            id="locationCountry" 
+            formControlName="locationCountry" 
+            class="form-control"
+            readonly>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones -->
+    <div class="form-actions">
+      <button 
+        type="button" 
+        class="btn btn-secondary" 
+        (click)="resetForm()"
+        [disabled]="isSubmitting">
+        Limpiar Formulario
+      </button>
+      
+      <button 
+        type="submit" 
+        class="btn btn-primary" 
+        [disabled]="carForm.invalid || isSubmitting">
+        <span *ngIf="isSubmitting">Publicando...</span>
+        <span *ngIf="!isSubmitting">Publicar Anuncio</span>
+      </button>
+    </div>
+  </form>
+</div>

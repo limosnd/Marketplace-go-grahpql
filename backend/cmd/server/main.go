@@ -9,8 +9,8 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
 	"github.com/limosnd/marketplace-go-graphql/internal/database"
+	"github.com/limosnd/marketplace-go-graphql/internal/generated"
 	"github.com/limosnd/marketplace-go-graphql/internal/resolvers"
-	"github.com/limosnd/marketplace-go-graphql/schemas"
 )
 
 func main() {
@@ -22,8 +22,8 @@ func main() {
 	defer database.Disconnect()
 
 	// Configurar GraphQL
-	resolver := &resolvers.Resolver{DB: db}
-	srv := handler.NewDefaultServer(schemas.NewExecutableSchema(schemas.Config{Resolvers: resolver}))
+	resolver := resolvers.NewResolver(db)
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
 
 	// Configurar Gin
 	r := gin.Default()
@@ -46,7 +46,11 @@ func main() {
 
 	// Health check
 	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "ok"})
+		c.JSON(200, gin.H{
+			"status":   "ok",
+			"database": "connected",
+			"graphql":  "ready",
+		})
 	})
 
 	port := os.Getenv("PORT")
@@ -55,6 +59,7 @@ func main() {
 	}
 
 	log.Printf("Server starting on port %s", port)
+	log.Printf("Health check: http://localhost:%s/health", port)
 	log.Printf("GraphQL playground: http://localhost:%s/playground", port)
 	
 	log.Fatal(http.ListenAndServe(":"+port, r))

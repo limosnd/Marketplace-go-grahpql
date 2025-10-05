@@ -1,0 +1,138 @@
+<div class="car-list-container">
+    <!-- Header -->
+  <div class="header">
+    <h1 class="title">Marketplace de Carros</h1>
+    <p class="subtitle">Encuentra el carro perfecto para ti</p>
+  </div>
+
+  <div class="filters-section">
+    <div class="search-bar">
+      <input 
+        type="text" 
+        placeholder="Buscar por marca, modelo..." 
+        class="search-input"
+        (input)="searchCars($event)">
+      <button class="search-btn">🔍</button>
+    </div>
+    <div class="filter-buttons">
+      <button class="filter-btn active" (click)="filterByBrand('Todos')">Todos</button>
+      <button class="filter-btn" (click)="filterByBrand('Toyota')">Toyota</button>
+      <button class="filter-btn" (click)="filterByBrand('BMW')">BMW</button>
+      <button class="filter-btn" (click)="filterByBrand('Honda')">Honda</button>
+      <button class="filter-btn" (click)="filterByBrand('Mercedes-Benz')">Mercedes-Benz</button>
+    </div>
+  </div>
+
+  <!-- Loading indicator -->
+    <!-- Loading state -->
+  <div *ngIf="loading" class="loading">
+    <div class="loading-spinner">⟳</div>
+    <p>Cargando carros...</p>
+  </div>
+
+  <!-- Error message -->
+    <!-- Error state -->
+  <div *ngIf="error" class="error-message">
+    <div class="error-icon">✕</div>
+    <p>{{ error }}</p>
+    <button class="btn btn-outline" (click)="loadCars()">Reintentar</button>
+  </div>
+
+  <!-- Cars grid -->
+  <div *ngIf="!loading && !error" class="cars-grid">
+    <div class="car-card" *ngFor="let car of cars">
+      <div class="car-image-container">
+        <img [src]="car.images[0] || 'https://via.placeholder.com/400x250/333/fff?text=No+Image'" 
+             [alt]="car.title" 
+             class="car-image">
+        <div class="status-badge" [class]="car.status.toLowerCase()">
+          {{ getStatusLabel(car.status) }}
+        </div>
+        <div class="fuel-badge">
+          {{ getFuelTypeLabel(car.fuelType) }}
+        </div>
+      </div>
+
+      <div class="car-info">
+        <h3 class="car-title">{{ car.title }}</h3>
+        
+        <div class="car-details">
+          <div class="detail-row">
+            <span class="label">🏭 Marca:</span>
+            <span class="value">{{ car.brand }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">🚙 Modelo:</span>
+            <span class="value">{{ car.model }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">📅 Año:</span>
+            <span class="value">{{ car.year }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">🎨 Color:</span>
+            <span class="value">{{ car.color }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">📏 Kilometraje:</span>
+            <span class="value">{{ formatMileage(car.mileage) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Transmisión:</span>
+            <span class="value">{{ getTransmissionLabel(car.transmission) }}</span>
+          </div>
+        </div>
+
+        <div class="location">
+          <span class="location-icon">●</span>
+          <span>{{ car.location.city }}, {{ car.location.state }}</span>
+        </div>
+
+        <div class="features">
+          <h4 class="features-title">Características:</h4>
+          <div class="features-list">
+            <span class="feature-tag" *ngFor="let feature of car.features">
+              {{ feature }}
+            </span>
+          </div>
+        </div>
+
+        <div class="seller-info">
+          <h4 class="seller-title">Vendedor:</h4>
+          <div class="seller-details">
+            <span class="seller-name">{{ car.seller.name }}</span>
+            <span class="seller-phone" *ngIf="car.seller.phone">{{ car.seller.phone }}</span>
+            <span class="seller-email">{{ car.seller.email }}</span>
+          </div>
+        </div>
+
+        <div class="car-footer">
+          <div class="price">{{ formatPrice(car.price) }}</div>
+          <div class="action-buttons">
+            <button class="btn btn-secondary">Favorito</button>
+            <button class="btn btn-primary">Contactar</button>
+            <button class="btn btn-success">Ver Detalles</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+      <!-- Empty state -->
+  <div *ngIf="!loading && !error && filteredCars.length === 0" class="empty-state">
+    <div class="empty-icon">○</div>
+    <h3>No se encontraron carros</h3>
+    <p>No hay carros disponibles en este momento.</p>
+    <button class="btn btn-outline" (click)="clearFilters()">Limpiar filtros</button>
+  </div>
+  </div>
+
+  <!-- Pagination info -->
+  <div *ngIf="!loading && !error && cars.length > 0" class="pagination-info">
+    <p>Mostrando {{ cars.length }} de {{ total }} carros (Página {{ currentPage }} de {{ totalPages }})</p>
+  </div>
+
+  <!-- Load more button -->
+  <div *ngIf="!loading && !error && currentPage < totalPages" class="load-more-section">
+    <button class="btn btn-outline" (click)="loadMoreCars()">Cargar más carros</button>
+  </div>
+</div>

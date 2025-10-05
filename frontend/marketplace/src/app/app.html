@@ -1,0 +1,21 @@
+<!-- Navigation Bar -->
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-brand">
+      <a routerLink="/" class="brand-link">{{ title() }}</a>
+    </div>
+    <div class="nav-links">
+      <a routerLink="/" class="nav-link" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+        Ver Carros
+      </a>
+      <a routerLink="/vender" class="nav-link" routerLinkActive="active">
+        Vender Carro
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- Main Content -->
+<main class="main-content">
+  <router-outlet />
+</main>

@@ -27,14 +27,6 @@ enum CarStatus {
   PENDING
 }
 
-enum OrderStatus {
-  PENDING
-  CONFIRMED
-  SHIPPING
-  DELIVERED
-  CANCELLED
-}
-
 # Types
 type User {
   id: ID!
@@ -76,72 +68,7 @@ type Car {
   updatedAt: Time!
 }
 
-type Message {
-  id: ID!
-  fromUser: User!
-  toUser: User!
-  car: Car!
-  content: String!
-  read: Boolean!
-  createdAt: Time!
-}
-
-type Favorite {
-  id: ID!
-  user: User!
-  car: Car!
-  createdAt: Time!
-}
-
-type CartItem {
-  carId: ID!
-  car: Car!
-  quantity: Int!
-  price: Float!
-  addedAt: Time!
-}
-
-type Cart {
-  id: ID!
-  user: User!
-  items: [CartItem!]!
-  total: Float!
-  createdAt: Time!
-  updatedAt: Time!
-}
-
-type OrderItem {
-  carId: ID!
-  car: Car!
-  quantity: Int!
-  price: Float!
-}
-
-type Order {
-  id: ID!
-  orderNumber: String!
-  buyer: User!
-  items: [OrderItem!]!
-  total: Float!
-  status: OrderStatus!
-  createdAt: Time!
-  updatedAt: Time!
-}
-
 # Input Types
-input RegisterInput {
-  name: String!
-  email: String!
-  password: String!
-  phone: String
-  role: UserRole!
-}
-
-input LoginInput {
-  email: String!
-  password: String!
-}
-
 input LocationInput {
   city: String!
   state: String!
@@ -163,7 +90,10 @@ input CarInput {
   transmission: TransmissionType!
   images: [String!]!
   location: LocationInput!
-  features: [String!]
+  features: [String!]!
+  sellerName: String!
+  sellerEmail: String!
+  sellerPhone: String!
 }
 
 input UpdateCarInput {
@@ -199,32 +129,7 @@ input CarFilterInput {
   state: String
 }
 
-input MessageInput {
-  toUserId: ID!
-  carId: ID!
-  content: String!
-}
-
-input CartItemInput {
-  carId: ID!
-  quantity: Int! = 1
-}
-
-input UpdateCartItemInput {
-  carId: ID!
-  quantity: Int!
-}
-
-input CreateOrderInput {
-  items: [CartItemInput!]!
-}
-
 # Response Types
-type AuthResponse {
-  token: String!
-  user: User!
-}
-
 type CarsResponse {
   cars: [Car!]!
   total: Int!
@@ -235,63 +140,18 @@ type CarsResponse {
 
 # Root Types
 type Query {
-  # User queries
-  me: User
-  user(id: ID!): User
-  
   # Car queries
   cars(filter: CarFilterInput, page: Int = 1, limit: Int = 10): CarsResponse!
   car(id: ID!): Car
-  myCars: [Car!]!
   searchCars(query: String!, page: Int = 1, limit: Int = 10): CarsResponse!
   
-  # Message queries
-  messages(carId: ID!): [Message!]!
-  conversations: [Message!]!
-  
-  # Favorite queries
-  myFavorites: [Car!]!
-  isFavorite(carId: ID!): Boolean!
-  
-  # Cart queries
-  myCart: Cart
-  cartItemCount: Int!
-  
-  # Order queries
-  myOrders: [Order!]!
-  order(id: ID!): Order
+  # Health check
+  health: String!
 }
 
 type Mutation {
-  # Auth mutations
-  register(input: RegisterInput!): AuthResponse!
-  login(input: LoginInput!): AuthResponse!
-  
   # Car mutations
   createCar(input: CarInput!): Car!
   updateCar(input: UpdateCarInput!): Car!
   deleteCar(id: ID!): Boolean!
-  
-  # Message mutations
-  sendMessage(input: MessageInput!): Message!
-  markMessageAsRead(id: ID!): Message!
-  
-  # Favorite mutations
-  addToFavorites(carId: ID!): Favorite!
-  removeFromFavorites(carId: ID!): Boolean!
-  
-  # Cart mutations
-  addToCart(input: CartItemInput!): Cart!
-  updateCartItem(input: UpdateCartItemInput!): Cart!
-  removeFromCart(carId: ID!): Cart!
-  clearCart: Boolean!
-  
-  # Order mutations
-  createOrder(input: CreateOrderInput!): Order!
-  updateOrderStatus(orderId: ID!, status: OrderStatus!): Order!
-}
-
-type Subscription {
-  messageReceived(carId: ID!): Message!
-  carStatusChanged(carId: ID!): Car!
 }
