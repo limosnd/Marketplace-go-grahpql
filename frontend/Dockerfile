@@ -25,4 +25,4 @@ COPY --from=build /app/marketplace/package*.json ./
 RUN npm install --omit=dev
 
 EXPOSE 4000
-CMD ["node", "dist/marketplace/server.mjs"]
+CMD ["node", "dist/marketplace/server/server.mjs"]
