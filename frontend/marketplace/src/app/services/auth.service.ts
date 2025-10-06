@@ -16,19 +16,29 @@ export class AuthService {
   private initializeAuthState(): void {
     // Initialize authentication state from localStorage if in browser
     if (isPlatformBrowser(this.platformId)) {
-      const isAuth = localStorage.getItem('isAuthenticated') === 'true';
-      const userEmail = localStorage.getItem('userEmail');
-      const userName = localStorage.getItem('userName');
-      
-      // Solo establecer como autenticado si todos los datos están presentes
-      if (isAuth && userEmail && userName) {
-        console.log('Auth: Restoring authentication for:', userEmail);
-        this.isAuthenticatedSubject.next(true);
-      } else {
-        console.log('Auth: No valid session found, clearing data');
-        this.clearLocalStorage();
+      try {
+        const isAuth = localStorage.getItem('isAuthenticated') === 'true';
+        const userEmail = localStorage.getItem('userEmail');
+        const userName = localStorage.getItem('userName');
+        
+        console.log('Auth: Checking stored data - isAuth:', isAuth, 'userEmail:', userEmail, 'userName:', userName);
+        
+        // Solo establecer como autenticado si todos los datos están presentes
+        if (isAuth && userEmail && userName) {
+          console.log('Auth: Restoring authentication for:', userEmail);
+          this.isAuthenticatedSubject.next(true);
+        } else {
+          console.log('Auth: No valid session found, clearing data');
+          this.clearLocalStorage();
+          this.isAuthenticatedSubject.next(false);
+        }
+      } catch (error) {
+        console.error('Auth: Error accessing localStorage:', error);
         this.isAuthenticatedSubject.next(false);
       }
+    } else {
+      console.log('Auth: Not in browser environment');
+      this.isAuthenticatedSubject.next(false);
     }
   }
 
@@ -81,7 +91,32 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return this.isAuthenticatedSubject.value;
+    // Double check: verificar tanto el BehaviorSubject como localStorage
+    const subjectValue = this.isAuthenticatedSubject.value;
+    
+    if (isPlatformBrowser(this.platformId)) {
+      try {
+        const storageAuth = localStorage.getItem('isAuthenticated') === 'true';
+        const userEmail = localStorage.getItem('userEmail');
+        const userName = localStorage.getItem('userName');
+        
+        const hasValidStorage = storageAuth && !!userEmail && !!userName;
+        
+        // Si hay discrepancia, sincronizar
+        if (hasValidStorage !== subjectValue) {
+          console.log('Auth: Syncing authentication state. Storage:', hasValidStorage, 'Subject:', subjectValue);
+          this.isAuthenticatedSubject.next(hasValidStorage);
+          return hasValidStorage;
+        }
+        
+        return hasValidStorage;
+      } catch (error) {
+        console.error('Auth: Error checking localStorage in isAuthenticated:', error);
+        return false;
+      }
+    }
+    
+    return subjectValue;
   }
 
   getUserName(): string {

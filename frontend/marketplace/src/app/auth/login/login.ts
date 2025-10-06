@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -18,15 +18,20 @@ export class Login implements OnInit {
   
   loginForm!: FormGroup;
   registerForm!: FormGroup;
+  returnUrl: string = '/marketplace';
 
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly router: Router,
+    private readonly route: ActivatedRoute,
     private readonly authService: AuthService
   ) {}
 
   ngOnInit() {
     this.initializeForms();
+    // Obtener el returnUrl de los query parameters
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/marketplace';
+    console.log('Login: returnUrl set to:', this.returnUrl);
   }
 
   initializeForms() {
@@ -60,8 +65,9 @@ export class Login implements OnInit {
         this.loading = false;
         this.successMessage = 'Inicio de sesión exitoso! Redirigiendo...';
         
-        // Redirigir al marketplace inmediatamente
-        this.router.navigate(['/marketplace']);
+        console.log('Login successful, redirecting to:', this.returnUrl);
+        // Redirigir a la URL original o al marketplace
+        this.router.navigate([this.returnUrl]);
       } else {
         this.loading = false;
         this.errorMessage = 'Credenciales inválidas. Verifica tu email y contraseña.';
@@ -81,8 +87,9 @@ export class Login implements OnInit {
         this.loading = false;
         this.successMessage = 'Cuenta creada exitosamente! Redirigiendo...';
         
-        // Redirigir al marketplace inmediatamente
-        this.router.navigate(['/marketplace']);
+        console.log('Registration successful, redirecting to:', this.returnUrl);
+        // Redirigir a la URL original o al marketplace
+        this.router.navigate([this.returnUrl]);
       } else {
         this.loading = false;
         this.errorMessage = 'Error al crear la cuenta. Verifica que todos los campos sean válidos.';

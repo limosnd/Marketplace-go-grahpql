@@ -11,12 +11,14 @@
       <a routerLink="/vender" class="nav-link" routerLinkActive="active">
         Vender Carro
       </a>
+      <a routerLink="/mis-publicaciones" class="nav-link" routerLinkActive="active">
+        Mis Publicaciones
+      </a>
       <div class="user-menu">
         <button class="user-button" (click)="toggleUserMenu()">
           Gestionar Cuenta
         </button>
         <div class="user-dropdown" *ngIf="showUserMenu">
-          <a href="#" (click)="myPublications()" class="dropdown-item">Mis Publicaciones</a>
           <a href="#" (click)="logout()" class="dropdown-item">Cerrar Sesión</a>
         </div>
       </div>

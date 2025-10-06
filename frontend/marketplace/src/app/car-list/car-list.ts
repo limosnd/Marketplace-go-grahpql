@@ -4,7 +4,6 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { CarService } from '../services/car.service';
-import { FavoritesService } from '../services/favorites.service';
 import { CartService } from '../services/cart.service';
 import { Car, CarsResponse, CarFilterInput } from '../interfaces/car.interface';
 
@@ -30,7 +29,6 @@ export class CarList implements OnInit, OnDestroy {
 
   constructor(
     private readonly carService: CarService,
-    private readonly favoritesService: FavoritesService,
     private readonly cartService: CartService,
     private readonly router: Router
   ) {}
@@ -142,17 +140,6 @@ export class CarList implements OnInit, OnDestroy {
 
   getStatusLabel(status: string): string {
     return this.carService.getStatusLabel(status);
-  }
-
-  // Favorites functionality
-  toggleFavorite(car: Car): void {
-    const wasFavorite = this.favoritesService.toggleFavorite(car);
-    // You could add a toast notification here
-    console.log(wasFavorite ? 'Added to favorites' : 'Removed from favorites');
-  }
-
-  isFavorite(carId: string): boolean {
-    return this.favoritesService.isFavorite(carId);
   }
 
   // Cart functionality

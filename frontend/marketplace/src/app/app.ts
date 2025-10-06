@@ -30,8 +30,11 @@ export class App implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    console.log('App: Initializing...');
+    
     // Subscribe to authentication state changes
     const authSub = this.authService.isAuthenticated$.subscribe(isAuth => {
+      console.log('App: Authentication state changed to:', isAuth);
       this.isUserAuthenticated = isAuth;
     });
     this.subscriptions.push(authSub);
@@ -41,6 +44,8 @@ export class App implements OnInit, OnDestroy {
       this.cartCount = this.cartService.getCartCount();
     });
     this.subscriptions.push(cartSub);
+    
+    console.log('App: Initial auth state:', this.isUserAuthenticated);
   }
 
   ngOnDestroy(): void {
@@ -61,17 +66,6 @@ export class App implements OnInit, OnDestroy {
 
   toggleUserMenu(): void {
     this.showUserMenu = !this.showUserMenu;
-  }
-
-  editProfile(): void {
-    this.showUserMenu = false;
-    // Navigate to profile editing page (not implemented yet)
-    console.log('Editar perfil - funcionalidad pendiente');
-  }
-
-  myPublications(): void {
-    this.showUserMenu = false;
-    this.router.navigate(['/mis-publicaciones']);
   }
 
   logout(): void {
