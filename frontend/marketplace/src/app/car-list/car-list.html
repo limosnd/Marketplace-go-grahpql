@@ -109,9 +109,32 @@
         <div class="car-footer">
           <div class="price">{{ formatPrice(car.price) }}</div>
           <div class="action-buttons">
-            <button class="btn btn-secondary">Favorito</button>
-            <button class="btn btn-primary">Contactar</button>
-            <button class="btn btn-success">Ver Detalles</button>
+            <button 
+              class="btn btn-secondary"
+              [class.active]="isFavorite(car.id)"
+              (click)="toggleFavorite(car)"
+              title="Agregar a favoritos">
+              {{ isFavorite(car.id) ? '❤️' : '🤍' }} Favorito
+            </button>
+            <button 
+              class="btn btn-primary"
+              (click)="contactSeller(car)"
+              title="Contactar vendedor">
+              📞 Contactar
+            </button>
+            <button 
+              class="btn btn-success"
+              (click)="viewCarDetails(car)"
+              title="Ver detalles">
+              👁️ Ver Detalles
+            </button>
+            <button 
+              class="btn btn-cart"
+              [class.in-cart]="isInCart(car.id)"
+              (click)="addToCart(car)"
+              title="Agregar al carrito">
+              🛒 {{ isInCart(car.id) ? 'En Carrito (' + getCartQuantity(car.id) + ')' : 'Agregar' }}
+            </button>
           </div>
         </div>
       </div>

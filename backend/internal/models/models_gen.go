@@ -2,6 +2,11 @@
 
 package models
 
+type AddToCartInput struct {
+	CarID    string `json:"carId"`
+	Quantity int    `json:"quantity"`
+}
+
 type CarFilterInput struct {
 	Brand        *string           `json:"brand,omitempty"`
 	Model        *string           `json:"model,omitempty"`
@@ -74,4 +79,11 @@ type UpdateCarInput struct {
 	Images       []string          `json:"images,omitempty"`
 	Location     *LocationInput    `json:"location,omitempty"`
 	Features     []string          `json:"features,omitempty"`
+}
+
+type UpdateUserInput struct {
+	Name   *string `json:"name,omitempty"`
+	Email  *string `json:"email,omitempty"`
+	Phone  *string `json:"phone,omitempty"`
+	Avatar *string `json:"avatar,omitempty"`
 }

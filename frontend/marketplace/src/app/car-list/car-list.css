@@ -508,5 +508,59 @@
   
   .action-buttons {
     flex-direction: column;
+    gap: 8px;
   }
+}
+
+/* Estilos adicionales para favoritos y carrito */
+.btn.active {
+  background: #e74c3c !important;
+  color: white !important;
+  border-color: #e74c3c !important;
+}
+
+.btn-cart {
+  background: #9b59b6;
+  color: white;
+  border: 2px solid #9b59b6;
+}
+
+.btn-cart:hover {
+  background: #8e44ad;
+  border-color: #8e44ad;
+}
+
+.btn-cart.in-cart {
+  background: #27ae60;
+  border-color: #27ae60;
+}
+
+.btn-cart.in-cart:hover {
+  background: #229954;
+  border-color: #229954;
+}
+
+/* Animaciones para botones interactivos */
+.action-buttons .btn {
+  transition: all 0.3s ease;
+}
+
+.action-buttons .btn:active {
+  transform: scale(0.95);
+}
+
+/* Tooltip styles */
+.btn[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
 }

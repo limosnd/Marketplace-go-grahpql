@@ -40,6 +40,8 @@ type Config struct {
 
 type ResolverRoot interface {
 	Car() CarResolver
+	Cart() CartResolver
+	CartItem() CartItemResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 	User() UserResolver
@@ -49,6 +51,11 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	AuthResponse struct {
+		Token func(childComplexity int) int
+		User  func(childComplexity int) int
+	}
+
 	Car struct {
 		Brand        func(childComplexity int) int
 		Color        func(childComplexity int) int
@@ -78,6 +85,20 @@ type ComplexityRoot struct {
 		TotalPages func(childComplexity int) int
 	}
 
+	Cart struct {
+		ID        func(childComplexity int) int
+		ItemCount func(childComplexity int) int
+		Items     func(childComplexity int) int
+		Total     func(childComplexity int) int
+	}
+
+	CartItem struct {
+		AddedAt  func(childComplexity int) int
+		Car      func(childComplexity int) int
+		ID       func(childComplexity int) int
+		Quantity func(childComplexity int) int
+	}
+
 	Location struct {
 		City    func(childComplexity int) int
 		Country func(childComplexity int) int
@@ -87,15 +108,23 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateCar func(childComplexity int, input models.CarInput) int
-		DeleteCar func(childComplexity int, id string) int
-		UpdateCar func(childComplexity int, input models.UpdateCarInput) int
+		AddToCart      func(childComplexity int, input models.AddToCartInput) int
+		ClearCart      func(childComplexity int) int
+		CreateCar      func(childComplexity int, input models.CarInput) int
+		DeleteCar      func(childComplexity int, id string) int
+		Login          func(childComplexity int, input models.LoginInput) int
+		Register       func(childComplexity int, input models.RegisterInput) int
+		RemoveFromCart func(childComplexity int, carID string) int
+		UpdateCar      func(childComplexity int, input models.UpdateCarInput) int
+		UpdateProfile  func(childComplexity int, input models.UpdateUserInput) int
 	}
 
 	Query struct {
 		Car        func(childComplexity int, id string) int
 		Cars       func(childComplexity int, filter *models.CarFilterInput, page *int, limit *int) int
 		Health     func(childComplexity int) int
+		Me         func(childComplexity int) int
+		MyCart     func(childComplexity int) int
 		SearchCars func(childComplexity int, query string, page *int, limit *int) int
 	}
 
@@ -114,15 +143,31 @@ type ComplexityRoot struct {
 type CarResolver interface {
 	ID(ctx context.Context, obj *models.Car) (string, error)
 }
+type CartResolver interface {
+	ID(ctx context.Context, obj *models.Cart) (string, error)
+
+	ItemCount(ctx context.Context, obj *models.Cart) (int, error)
+}
+type CartItemResolver interface {
+	ID(ctx context.Context, obj *models.CartItem) (string, error)
+}
 type MutationResolver interface {
+	Login(ctx context.Context, input models.LoginInput) (*models.AuthResponse, error)
+	Register(ctx context.Context, input models.RegisterInput) (*models.AuthResponse, error)
+	UpdateProfile(ctx context.Context, input models.UpdateUserInput) (*models.User, error)
 	CreateCar(ctx context.Context, input models.CarInput) (*models.Car, error)
 	UpdateCar(ctx context.Context, input models.UpdateCarInput) (*models.Car, error)
 	DeleteCar(ctx context.Context, id string) (bool, error)
+	AddToCart(ctx context.Context, input models.AddToCartInput) (*models.Cart, error)
+	RemoveFromCart(ctx context.Context, carID string) (*models.Cart, error)
+	ClearCart(ctx context.Context) (bool, error)
 }
 type QueryResolver interface {
 	Cars(ctx context.Context, filter *models.CarFilterInput, page *int, limit *int) (*models.CarsResponse, error)
 	Car(ctx context.Context, id string) (*models.Car, error)
 	SearchCars(ctx context.Context, query string, page *int, limit *int) (*models.CarsResponse, error)
+	Me(ctx context.Context) (*models.User, error)
+	MyCart(ctx context.Context) (*models.Cart, error)
 	Health(ctx context.Context) (string, error)
 }
 type UserResolver interface {
@@ -147,6 +192,19 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 	ec := executionContext{nil, e, 0, 0, nil}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "AuthResponse.token":
+		if e.complexity.AuthResponse.Token == nil {
+			break
+		}
+
+		return e.complexity.AuthResponse.Token(childComplexity), true
+	case "AuthResponse.user":
+		if e.complexity.AuthResponse.User == nil {
+			break
+		}
+
+		return e.complexity.AuthResponse.User(childComplexity), true
 
 	case "Car.brand":
 		if e.complexity.Car.Brand == nil {
@@ -288,6 +346,56 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.CarsResponse.TotalPages(childComplexity), true
 
+	case "Cart.id":
+		if e.complexity.Cart.ID == nil {
+			break
+		}
+
+		return e.complexity.Cart.ID(childComplexity), true
+	case "Cart.itemCount":
+		if e.complexity.Cart.ItemCount == nil {
+			break
+		}
+
+		return e.complexity.Cart.ItemCount(childComplexity), true
+	case "Cart.items":
+		if e.complexity.Cart.Items == nil {
+			break
+		}
+
+		return e.complexity.Cart.Items(childComplexity), true
+	case "Cart.total":
+		if e.complexity.Cart.Total == nil {
+			break
+		}
+
+		return e.complexity.Cart.Total(childComplexity), true
+
+	case "CartItem.addedAt":
+		if e.complexity.CartItem.AddedAt == nil {
+			break
+		}
+
+		return e.complexity.CartItem.AddedAt(childComplexity), true
+	case "CartItem.car":
+		if e.complexity.CartItem.Car == nil {
+			break
+		}
+
+		return e.complexity.CartItem.Car(childComplexity), true
+	case "CartItem.id":
+		if e.complexity.CartItem.ID == nil {
+			break
+		}
+
+		return e.complexity.CartItem.ID(childComplexity), true
+	case "CartItem.quantity":
+		if e.complexity.CartItem.Quantity == nil {
+			break
+		}
+
+		return e.complexity.CartItem.Quantity(childComplexity), true
+
 	case "Location.city":
 		if e.complexity.Location.City == nil {
 			break
@@ -319,6 +427,23 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Location.State(childComplexity), true
 
+	case "Mutation.addToCart":
+		if e.complexity.Mutation.AddToCart == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addToCart_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddToCart(childComplexity, args["input"].(models.AddToCartInput)), true
+	case "Mutation.clearCart":
+		if e.complexity.Mutation.ClearCart == nil {
+			break
+		}
+
+		return e.complexity.Mutation.ClearCart(childComplexity), true
 	case "Mutation.createCar":
 		if e.complexity.Mutation.CreateCar == nil {
 			break
@@ -341,6 +466,39 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.DeleteCar(childComplexity, args["id"].(string)), true
+	case "Mutation.login":
+		if e.complexity.Mutation.Login == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_login_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Login(childComplexity, args["input"].(models.LoginInput)), true
+	case "Mutation.register":
+		if e.complexity.Mutation.Register == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_register_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Register(childComplexity, args["input"].(models.RegisterInput)), true
+	case "Mutation.removeFromCart":
+		if e.complexity.Mutation.RemoveFromCart == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_removeFromCart_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RemoveFromCart(childComplexity, args["carId"].(string)), true
 	case "Mutation.updateCar":
 		if e.complexity.Mutation.UpdateCar == nil {
 			break
@@ -352,6 +510,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.UpdateCar(childComplexity, args["input"].(models.UpdateCarInput)), true
+	case "Mutation.updateProfile":
+		if e.complexity.Mutation.UpdateProfile == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateProfile_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateProfile(childComplexity, args["input"].(models.UpdateUserInput)), true
 
 	case "Query.car":
 		if e.complexity.Query.Car == nil {
@@ -381,6 +550,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.Health(childComplexity), true
+	case "Query.me":
+		if e.complexity.Query.Me == nil {
+			break
+		}
+
+		return e.complexity.Query.Me(childComplexity), true
+	case "Query.myCart":
+		if e.complexity.Query.MyCart == nil {
+			break
+		}
+
+		return e.complexity.Query.MyCart(childComplexity), true
 	case "Query.searchCars":
 		if e.complexity.Query.SearchCars == nil {
 			break
@@ -450,10 +631,14 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	opCtx := graphql.GetOperationContext(ctx)
 	ec := executionContext{opCtx, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputAddToCartInput,
 		ec.unmarshalInputCarFilterInput,
 		ec.unmarshalInputCarInput,
 		ec.unmarshalInputLocationInput,
+		ec.unmarshalInputLoginInput,
+		ec.unmarshalInputRegisterInput,
 		ec.unmarshalInputUpdateCarInput,
+		ec.unmarshalInputUpdateUserInput,
 	)
 	first := true
 
@@ -682,6 +867,30 @@ input CarFilterInput {
   state: String
 }
 
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input RegisterInput {
+  name: String!
+  email: String!
+  password: String!
+  phone: String
+}
+
+input UpdateUserInput {
+  name: String
+  email: String
+  phone: String
+  avatar: String
+}
+
+input AddToCartInput {
+  carId: ID!
+  quantity: Int! = 1
+}
+
 # Response Types
 type CarsResponse {
   cars: [Car!]!
@@ -691,6 +900,25 @@ type CarsResponse {
   totalPages: Int!
 }
 
+type AuthResponse {
+  token: String!
+  user: User!
+}
+
+type CartItem {
+  id: ID!
+  car: Car!
+  quantity: Int!
+  addedAt: Time!
+}
+
+type Cart {
+  id: ID!
+  items: [CartItem!]!
+  total: Float!
+  itemCount: Int!
+}
+
 # Root Types
 type Query {
   # Car queries
@@ -698,15 +926,31 @@ type Query {
   car(id: ID!): Car
   searchCars(query: String!, page: Int = 1, limit: Int = 10): CarsResponse!
   
+  # User queries
+  me: User
+  
+  # Cart queries
+  myCart: Cart!
+  
   # Health check
   health: String!
 }
 
 type Mutation {
+  # Auth mutations
+  login(input: LoginInput!): AuthResponse!
+  register(input: RegisterInput!): AuthResponse!
+  updateProfile(input: UpdateUserInput!): User!
+  
   # Car mutations
   createCar(input: CarInput!): Car!
   updateCar(input: UpdateCarInput!): Car!
   deleteCar(id: ID!): Boolean!
+  
+  # Cart mutations
+  addToCart(input: AddToCartInput!): Cart!
+  removeFromCart(carId: ID!): Cart!
+  clearCart: Boolean!
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -714,6 +958,17 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_addToCart_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNAddToCartInput2githubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐAddToCartInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_createCar_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
@@ -737,10 +992,54 @@ func (ec *executionContext) field_Mutation_deleteCar_args(ctx context.Context, r
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_login_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNLoginInput2githubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐLoginInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_register_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNRegisterInput2githubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐRegisterInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_removeFromCart_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "carId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["carId"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateCar_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateCarInput2githubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐUpdateCarInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateProfile_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateUserInput2githubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐUpdateUserInput)
 	if err != nil {
 		return nil, err
 	}
@@ -863,6 +1162,82 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _AuthResponse_token(ctx context.Context, field graphql.CollectedField, obj *models.AuthResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AuthResponse_token,
+		func(ctx context.Context) (any, error) {
+			return obj.Token, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AuthResponse_token(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuthResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuthResponse_user(ctx context.Context, field graphql.CollectedField, obj *models.AuthResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AuthResponse_user,
+		func(ctx context.Context) (any, error) {
+			return obj.User, nil
+		},
+		nil,
+		ec.marshalNUser2ᚖgithubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐUser,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AuthResponse_user(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuthResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "phone":
+				return ec.fieldContext_User_phone(ctx, field)
+			case "avatar":
+				return ec.fieldContext_User_avatar(ctx, field)
+			case "role":
+				return ec.fieldContext_User_role(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_User_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _Car_id(ctx context.Context, field graphql.CollectedField, obj *models.Car) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
@@ -1599,6 +1974,286 @@ func (ec *executionContext) fieldContext_CarsResponse_totalPages(_ context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Cart_id(ctx context.Context, field graphql.CollectedField, obj *models.Cart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Cart_id,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Cart().ID(ctx, obj)
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Cart_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Cart",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Cart_items(ctx context.Context, field graphql.CollectedField, obj *models.Cart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Cart_items,
+		func(ctx context.Context) (any, error) {
+			return obj.Items, nil
+		},
+		nil,
+		ec.marshalNCartItem2ᚕgithubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐCartItemᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Cart_items(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Cart",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CartItem_id(ctx, field)
+			case "car":
+				return ec.fieldContext_CartItem_car(ctx, field)
+			case "quantity":
+				return ec.fieldContext_CartItem_quantity(ctx, field)
+			case "addedAt":
+				return ec.fieldContext_CartItem_addedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CartItem", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Cart_total(ctx context.Context, field graphql.CollectedField, obj *models.Cart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Cart_total,
+		func(ctx context.Context) (any, error) {
+			return obj.Total, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Cart_total(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Cart",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Cart_itemCount(ctx context.Context, field graphql.CollectedField, obj *models.Cart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Cart_itemCount,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Cart().ItemCount(ctx, obj)
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Cart_itemCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Cart",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CartItem_id(ctx context.Context, field graphql.CollectedField, obj *models.CartItem) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CartItem_id,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.CartItem().ID(ctx, obj)
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CartItem_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CartItem",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CartItem_car(ctx context.Context, field graphql.CollectedField, obj *models.CartItem) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CartItem_car,
+		func(ctx context.Context) (any, error) {
+			return obj.Car, nil
+		},
+		nil,
+		ec.marshalNCar2ᚖgithubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐCar,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CartItem_car(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CartItem",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Car_id(ctx, field)
+			case "title":
+				return ec.fieldContext_Car_title(ctx, field)
+			case "description":
+				return ec.fieldContext_Car_description(ctx, field)
+			case "brand":
+				return ec.fieldContext_Car_brand(ctx, field)
+			case "model":
+				return ec.fieldContext_Car_model(ctx, field)
+			case "year":
+				return ec.fieldContext_Car_year(ctx, field)
+			case "price":
+				return ec.fieldContext_Car_price(ctx, field)
+			case "mileage":
+				return ec.fieldContext_Car_mileage(ctx, field)
+			case "color":
+				return ec.fieldContext_Car_color(ctx, field)
+			case "fuelType":
+				return ec.fieldContext_Car_fuelType(ctx, field)
+			case "transmission":
+				return ec.fieldContext_Car_transmission(ctx, field)
+			case "status":
+				return ec.fieldContext_Car_status(ctx, field)
+			case "images":
+				return ec.fieldContext_Car_images(ctx, field)
+			case "seller":
+				return ec.fieldContext_Car_seller(ctx, field)
+			case "location":
+				return ec.fieldContext_Car_location(ctx, field)
+			case "features":
+				return ec.fieldContext_Car_features(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Car_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Car_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Car", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CartItem_quantity(ctx context.Context, field graphql.CollectedField, obj *models.CartItem) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CartItem_quantity,
+		func(ctx context.Context) (any, error) {
+			return obj.Quantity, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CartItem_quantity(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CartItem",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CartItem_addedAt(ctx context.Context, field graphql.CollectedField, obj *models.CartItem) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CartItem_addedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.AddedAt, nil
+		},
+		nil,
+		ec.marshalNTime2timeᚐTime,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CartItem_addedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CartItem",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Location_city(ctx context.Context, field graphql.CollectedField, obj *models.Location) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -1740,6 +2395,159 @@ func (ec *executionContext) fieldContext_Location_lng(_ context.Context, field g
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Float does not have child fields")
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_login(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_login,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().Login(ctx, fc.Args["input"].(models.LoginInput))
+		},
+		nil,
+		ec.marshalNAuthResponse2ᚖgithubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐAuthResponse,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_login(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "token":
+				return ec.fieldContext_AuthResponse_token(ctx, field)
+			case "user":
+				return ec.fieldContext_AuthResponse_user(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AuthResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_login_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_register(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_register,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().Register(ctx, fc.Args["input"].(models.RegisterInput))
+		},
+		nil,
+		ec.marshalNAuthResponse2ᚖgithubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐAuthResponse,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_register(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "token":
+				return ec.fieldContext_AuthResponse_token(ctx, field)
+			case "user":
+				return ec.fieldContext_AuthResponse_user(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AuthResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_register_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_updateProfile,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().UpdateProfile(ctx, fc.Args["input"].(models.UpdateUserInput))
+		},
+		nil,
+		ec.marshalNUser2ᚖgithubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐUser,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateProfile(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "phone":
+				return ec.fieldContext_User_phone(ctx, field)
+			case "avatar":
+				return ec.fieldContext_User_avatar(ctx, field)
+			case "role":
+				return ec.fieldContext_User_role(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_User_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateProfile_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -1943,6 +2751,137 @@ func (ec *executionContext) fieldContext_Mutation_deleteCar(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_addToCart(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_addToCart,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().AddToCart(ctx, fc.Args["input"].(models.AddToCartInput))
+		},
+		nil,
+		ec.marshalNCart2ᚖgithubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐCart,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addToCart(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Cart_id(ctx, field)
+			case "items":
+				return ec.fieldContext_Cart_items(ctx, field)
+			case "total":
+				return ec.fieldContext_Cart_total(ctx, field)
+			case "itemCount":
+				return ec.fieldContext_Cart_itemCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Cart", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addToCart_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_removeFromCart(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_removeFromCart,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().RemoveFromCart(ctx, fc.Args["carId"].(string))
+		},
+		nil,
+		ec.marshalNCart2ᚖgithubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐCart,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_removeFromCart(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Cart_id(ctx, field)
+			case "items":
+				return ec.fieldContext_Cart_items(ctx, field)
+			case "total":
+				return ec.fieldContext_Cart_total(ctx, field)
+			case "itemCount":
+				return ec.fieldContext_Cart_itemCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Cart", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_removeFromCart_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_clearCart(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_clearCart,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Mutation().ClearCart(ctx)
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_clearCart(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_cars(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -2124,6 +3063,92 @@ func (ec *executionContext) fieldContext_Query_searchCars(ctx context.Context, f
 	if fc.Args, err = ec.field_Query_searchCars_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_me(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_me,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Query().Me(ctx)
+		},
+		nil,
+		ec.marshalOUser2ᚖgithubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐUser,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_me(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "phone":
+				return ec.fieldContext_User_phone(ctx, field)
+			case "avatar":
+				return ec.fieldContext_User_avatar(ctx, field)
+			case "role":
+				return ec.fieldContext_User_role(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_User_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_myCart(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_myCart,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Query().MyCart(ctx)
+		},
+		nil,
+		ec.marshalNCart2ᚖgithubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐCart,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_myCart(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Cart_id(ctx, field)
+			case "items":
+				return ec.fieldContext_Cart_items(ctx, field)
+			case "total":
+				return ec.fieldContext_Cart_total(ctx, field)
+			case "itemCount":
+				return ec.fieldContext_Cart_itemCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Cart", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -3943,6 +4968,44 @@ func (ec *executionContext) fieldContext___Type_isOneOf(_ context.Context, field
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputAddToCartInput(ctx context.Context, obj any) (models.AddToCartInput, error) {
+	var it models.AddToCartInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["quantity"]; !present {
+		asMap["quantity"] = 1
+	}
+
+	fieldsInOrder := [...]string{"carId", "quantity"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "carId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("carId"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CarID = data
+		case "quantity":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("quantity"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Quantity = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCarFilterInput(ctx context.Context, obj any) (models.CarFilterInput, error) {
 	var it models.CarFilterInput
 	asMap := map[string]any{}
@@ -4234,6 +5297,88 @@ func (ec *executionContext) unmarshalInputLocationInput(ctx context.Context, obj
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputLoginInput(ctx context.Context, obj any) (models.LoginInput, error) {
+	var it models.LoginInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"email", "password"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "email":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Email = data
+		case "password":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Password = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputRegisterInput(ctx context.Context, obj any) (models.RegisterInput, error) {
+	var it models.RegisterInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "email", "password", "phone"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "email":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Email = data
+		case "password":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Password = data
+		case "phone":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Phone = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateCarInput(ctx context.Context, obj any) (models.UpdateCarInput, error) {
 	var it models.UpdateCarInput
 	asMap := map[string]any{}
@@ -4359,6 +5504,54 @@ func (ec *executionContext) unmarshalInputUpdateCarInput(ctx context.Context, ob
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, obj any) (models.UpdateUserInput, error) {
+	var it models.UpdateUserInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "email", "phone", "avatar"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "email":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Email = data
+		case "phone":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Phone = data
+		case "avatar":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("avatar"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Avatar = data
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -4366,6 +5559,50 @@ func (ec *executionContext) unmarshalInputUpdateCarInput(ctx context.Context, ob
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
+
+var authResponseImplementors = []string{"AuthResponse"}
+
+func (ec *executionContext) _AuthResponse(ctx context.Context, sel ast.SelectionSet, obj *models.AuthResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, authResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AuthResponse")
+		case "token":
+			out.Values[i] = ec._AuthResponse_token(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "user":
+			out.Values[i] = ec._AuthResponse_user(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
 
 var carImplementors = []string{"Car"}
 
@@ -4581,6 +5818,207 @@ func (ec *executionContext) _CarsResponse(ctx context.Context, sel ast.Selection
 	return out
 }
 
+var cartImplementors = []string{"Cart"}
+
+func (ec *executionContext) _Cart(ctx context.Context, sel ast.SelectionSet, obj *models.Cart) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, cartImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Cart")
+		case "id":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Cart_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "items":
+			out.Values[i] = ec._Cart_items(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "total":
+			out.Values[i] = ec._Cart_total(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "itemCount":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Cart_itemCount(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var cartItemImplementors = []string{"CartItem"}
+
+func (ec *executionContext) _CartItem(ctx context.Context, sel ast.SelectionSet, obj *models.CartItem) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, cartItemImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CartItem")
+		case "id":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CartItem_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "car":
+			out.Values[i] = ec._CartItem_car(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "quantity":
+			out.Values[i] = ec._CartItem_quantity(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "addedAt":
+			out.Values[i] = ec._CartItem_addedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var locationImplementors = []string{"Location"}
 
 func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet, obj *models.Location) graphql.Marshaler {
@@ -4653,6 +6091,27 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "login":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_login(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "register":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_register(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateProfile":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateProfile(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "createCar":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createCar(ctx, field)
@@ -4670,6 +6129,27 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "deleteCar":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteCar(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "addToCart":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addToCart(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "removeFromCart":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_removeFromCart(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "clearCart":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_clearCart(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -4767,6 +6247,47 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_searchCars(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "me":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_me(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "myCart":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_myCart(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -5266,6 +6787,25 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) unmarshalNAddToCartInput2githubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐAddToCartInput(ctx context.Context, v any) (models.AddToCartInput, error) {
+	res, err := ec.unmarshalInputAddToCartInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNAuthResponse2githubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐAuthResponse(ctx context.Context, sel ast.SelectionSet, v models.AuthResponse) graphql.Marshaler {
+	return ec._AuthResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAuthResponse2ᚖgithubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐAuthResponse(ctx context.Context, sel ast.SelectionSet, v *models.AuthResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AuthResponse(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v any) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5376,6 +6916,68 @@ func (ec *executionContext) marshalNCarsResponse2ᚖgithubᚗcomᚋlimosndᚋmar
 	return ec._CarsResponse(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNCart2githubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐCart(ctx context.Context, sel ast.SelectionSet, v models.Cart) graphql.Marshaler {
+	return ec._Cart(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCart2ᚖgithubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐCart(ctx context.Context, sel ast.SelectionSet, v *models.Cart) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Cart(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCartItem2githubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐCartItem(ctx context.Context, sel ast.SelectionSet, v models.CartItem) graphql.Marshaler {
+	return ec._CartItem(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCartItem2ᚕgithubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐCartItemᚄ(ctx context.Context, sel ast.SelectionSet, v []models.CartItem) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCartItem2githubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐCartItem(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v any) (float64, error) {
 	res, err := graphql.UnmarshalFloatContext(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5448,6 +7050,16 @@ func (ec *executionContext) marshalNLocation2githubᚗcomᚋlimosndᚋmarketplac
 func (ec *executionContext) unmarshalNLocationInput2ᚖgithubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐLocationInput(ctx context.Context, v any) (*models.LocationInput, error) {
 	res, err := ec.unmarshalInputLocationInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNLoginInput2githubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐLoginInput(ctx context.Context, v any) (models.LoginInput, error) {
+	res, err := ec.unmarshalInputLoginInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNRegisterInput2githubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐRegisterInput(ctx context.Context, v any) (models.RegisterInput, error) {
+	res, err := ec.unmarshalInputRegisterInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v any) (string, error) {
@@ -5534,8 +7146,23 @@ func (ec *executionContext) unmarshalNUpdateCarInput2githubᚗcomᚋlimosndᚋma
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNUpdateUserInput2githubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐUpdateUserInput(ctx context.Context, v any) (models.UpdateUserInput, error) {
+	res, err := ec.unmarshalInputUpdateUserInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNUser2githubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v models.User) graphql.Marshaler {
 	return ec._User(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v *models.User) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._User(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNUserRole2githubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐUserRole(ctx context.Context, v any) (models.UserRole, error) {
@@ -6005,6 +7632,13 @@ func (ec *executionContext) marshalOTransmissionType2ᚖgithubᚗcomᚋlimosnd�
 	_ = ctx
 	res := graphql.MarshalString(string(*v))
 	return res
+}
+
+func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋlimosndᚋmarketplaceᚑgoᚑgraphqlᚋinternalᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v *models.User) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._User(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

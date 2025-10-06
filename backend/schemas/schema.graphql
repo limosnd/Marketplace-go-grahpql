@@ -129,6 +129,30 @@ input CarFilterInput {
   state: String
 }
 
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input RegisterInput {
+  name: String!
+  email: String!
+  password: String!
+  phone: String
+}
+
+input UpdateUserInput {
+  name: String
+  email: String
+  phone: String
+  avatar: String
+}
+
+input AddToCartInput {
+  carId: ID!
+  quantity: Int! = 1
+}
+
 # Response Types
 type CarsResponse {
   cars: [Car!]!
@@ -138,6 +162,25 @@ type CarsResponse {
   totalPages: Int!
 }
 
+type AuthResponse {
+  token: String!
+  user: User!
+}
+
+type CartItem {
+  id: ID!
+  car: Car!
+  quantity: Int!
+  addedAt: Time!
+}
+
+type Cart {
+  id: ID!
+  items: [CartItem!]!
+  total: Float!
+  itemCount: Int!
+}
+
 # Root Types
 type Query {
   # Car queries
@@ -145,13 +188,29 @@ type Query {
   car(id: ID!): Car
   searchCars(query: String!, page: Int = 1, limit: Int = 10): CarsResponse!
   
+  # User queries
+  me: User
+  
+  # Cart queries
+  myCart: Cart!
+  
   # Health check
   health: String!
 }
 
 type Mutation {
+  # Auth mutations
+  login(input: LoginInput!): AuthResponse!
+  register(input: RegisterInput!): AuthResponse!
+  updateProfile(input: UpdateUserInput!): User!
+  
   # Car mutations
   createCar(input: CarInput!): Car!
   updateCar(input: UpdateCarInput!): Car!
   deleteCar(id: ID!): Boolean!
+  
+  # Cart mutations
+  addToCart(input: AddToCartInput!): Cart!
+  removeFromCart(carId: ID!): Cart!
+  clearCart: Boolean!
 }
