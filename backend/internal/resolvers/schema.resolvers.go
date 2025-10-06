@@ -6,6 +6,7 @@ package resolvers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/limosnd/marketplace-go-graphql/internal/generated"
 	"github.com/limosnd/marketplace-go-graphql/internal/models"
@@ -15,6 +16,36 @@ import (
 // ID is the resolver for the id field.
 func (r *carResolver) ID(ctx context.Context, obj *models.Car) (string, error) {
 	return obj.ID.Hex(), nil
+}
+
+// ID is the resolver for the id field.
+func (r *cartResolver) ID(ctx context.Context, obj *models.Cart) (string, error) {
+	return obj.ID.Hex(), nil
+}
+
+// ItemCount is the resolver for the itemCount field.
+func (r *cartResolver) ItemCount(ctx context.Context, obj *models.Cart) (int, error) {
+	return len(obj.Items), nil
+}
+
+// ID is the resolver for the id field.
+func (r *cartItemResolver) ID(ctx context.Context, obj *models.CartItem) (string, error) {
+	return obj.ID.Hex(), nil
+}
+
+// Login is the resolver for the login field.
+func (r *mutationResolver) Login(ctx context.Context, input models.LoginInput) (*models.AuthResponse, error) {
+	panic(fmt.Errorf("not implemented: Login - login"))
+}
+
+// Register is the resolver for the register field.
+func (r *mutationResolver) Register(ctx context.Context, input models.RegisterInput) (*models.AuthResponse, error) {
+	panic(fmt.Errorf("not implemented: Register - register"))
+}
+
+// UpdateProfile is the resolver for the updateProfile field.
+func (r *mutationResolver) UpdateProfile(ctx context.Context, input models.UpdateUserInput) (*models.User, error) {
+	panic(fmt.Errorf("not implemented: UpdateProfile - updateProfile"))
 }
 
 // CreateCar is the resolver for the createCar field.
@@ -52,37 +83,49 @@ func (r *mutationResolver) CreateCar(ctx context.Context, input models.CarInput)
 func (r *mutationResolver) UpdateCar(ctx context.Context, input models.UpdateCarInput) (*models.Car, error) {
 	// Convert GraphQL input to service input
 	serviceInput := &services.UpdateCarInput{
-		ID:           input.ID,
-		Title:        input.Title,
-		Description:  input.Description,
-		Brand:        input.Brand,
-		Model:        input.Model,
-		Year:         input.Year,
-		Price:        input.Price,
-		Mileage:      input.Mileage,
-		Color:        input.Color,
-		Features:     input.Features,
+		ID: input.ID,
 	}
 
+	// Only set fields that are provided (not nil)
+	if input.Title != nil {
+		serviceInput.Title = input.Title
+	}
+	if input.Description != nil {
+		serviceInput.Description = input.Description
+	}
+	if input.Brand != nil {
+		serviceInput.Brand = input.Brand
+	}
+	if input.Model != nil {
+		serviceInput.Model = input.Model
+	}
+	if input.Year != nil {
+		serviceInput.Year = input.Year
+	}
+	if input.Price != nil {
+		serviceInput.Price = input.Price
+	}
+	if input.Mileage != nil {
+		serviceInput.Mileage = input.Mileage
+	}
+	if input.Color != nil {
+		serviceInput.Color = input.Color
+	}
 	if input.FuelType != nil {
 		fuelType := models.FuelType(*input.FuelType)
 		serviceInput.FuelType = &fuelType
 	}
-
 	if input.Transmission != nil {
 		transmission := models.TransmissionType(*input.Transmission)
 		serviceInput.Transmission = &transmission
 	}
-
 	if input.Status != nil {
 		status := models.CarStatus(*input.Status)
 		serviceInput.Status = &status
 	}
-
 	if input.Images != nil {
 		serviceInput.Images = input.Images
 	}
-
 	if input.Location != nil {
 		serviceInput.Location = &services.LocationInput{
 			City:    input.Location.City,
@@ -92,6 +135,9 @@ func (r *mutationResolver) UpdateCar(ctx context.Context, input models.UpdateCar
 			Lng:     input.Location.Lng,
 		}
 	}
+	if input.Features != nil {
+		serviceInput.Features = input.Features
+	}
 
 	return r.CarService.UpdateCar(ctx, serviceInput)
 }
@@ -99,6 +145,21 @@ func (r *mutationResolver) UpdateCar(ctx context.Context, input models.UpdateCar
 // DeleteCar is the resolver for the deleteCar field.
 func (r *mutationResolver) DeleteCar(ctx context.Context, id string) (bool, error) {
 	return r.CarService.DeleteCar(ctx, id)
+}
+
+// AddToCart is the resolver for the addToCart field.
+func (r *mutationResolver) AddToCart(ctx context.Context, input models.AddToCartInput) (*models.Cart, error) {
+	panic(fmt.Errorf("not implemented: AddToCart - addToCart"))
+}
+
+// RemoveFromCart is the resolver for the removeFromCart field.
+func (r *mutationResolver) RemoveFromCart(ctx context.Context, carID string) (*models.Cart, error) {
+	panic(fmt.Errorf("not implemented: RemoveFromCart - removeFromCart"))
+}
+
+// ClearCart is the resolver for the clearCart field.
+func (r *mutationResolver) ClearCart(ctx context.Context) (bool, error) {
+	panic(fmt.Errorf("not implemented: ClearCart - clearCart"))
 }
 
 // Cars is the resolver for the cars field.
@@ -117,16 +178,16 @@ func (r *queryResolver) Cars(ctx context.Context, filter *models.CarFilterInput,
 	var serviceFilter *services.CarFilterInput
 	if filter != nil {
 		serviceFilter = &services.CarFilterInput{
-			Brand:        filter.Brand,
-			Model:        filter.Model,
-			MinYear:      filter.MinYear,
-			MaxYear:      filter.MaxYear,
-			MinPrice:     filter.MinPrice,
-			MaxPrice:     filter.MaxPrice,
-			MinMileage:   filter.MinMileage,
-			MaxMileage:   filter.MaxMileage,
-			City:         filter.City,
-			State:        filter.State,
+			Brand:      filter.Brand,
+			Model:      filter.Model,
+			MinYear:    filter.MinYear,
+			MaxYear:    filter.MaxYear,
+			MinPrice:   filter.MinPrice,
+			MaxPrice:   filter.MaxPrice,
+			MinMileage: filter.MinMileage,
+			MaxMileage: filter.MaxMileage,
+			City:       filter.City,
+			State:      filter.State,
 		}
 
 		if filter.FuelType != nil {
@@ -162,29 +223,17 @@ func (r *queryResolver) Car(ctx context.Context, id string) (*models.Car, error)
 
 // SearchCars is the resolver for the searchCars field.
 func (r *queryResolver) SearchCars(ctx context.Context, query string, page *int, limit *int) (*models.CarsResponse, error) {
-	// Set defaults
-	if page == nil {
-		defaultPage := 1
-		page = &defaultPage
-	}
-	if limit == nil {
-		defaultLimit := 10
-		limit = &defaultLimit
-	}
+	panic(fmt.Errorf("not implemented: SearchCars - searchCars"))
+}
 
-	response, err := r.CarService.SearchCars(ctx, query, *page, *limit)
-	if err != nil {
-		return nil, err
-	}
+// Me is the resolver for the me field.
+func (r *queryResolver) Me(ctx context.Context) (*models.User, error) {
+	panic(fmt.Errorf("not implemented: Me - me"))
+}
 
-	// Convert service response to GraphQL response
-	return &models.CarsResponse{
-		Cars:       response.Cars,
-		Total:      response.Total,
-		Page:       response.Page,
-		Limit:      response.Limit,
-		TotalPages: response.TotalPages,
-	}, nil
+// MyCart is the resolver for the myCart field.
+func (r *queryResolver) MyCart(ctx context.Context) (*models.Cart, error) {
+	panic(fmt.Errorf("not implemented: MyCart - myCart"))
 }
 
 // Health is the resolver for the health field.
@@ -200,6 +249,12 @@ func (r *userResolver) ID(ctx context.Context, obj *models.User) (string, error)
 // Car returns generated.CarResolver implementation.
 func (r *Resolver) Car() generated.CarResolver { return &carResolver{r} }
 
+// Cart returns generated.CartResolver implementation.
+func (r *Resolver) Cart() generated.CartResolver { return &cartResolver{r} }
+
+// CartItem returns generated.CartItemResolver implementation.
+func (r *Resolver) CartItem() generated.CartItemResolver { return &cartItemResolver{r} }
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
@@ -210,6 +265,8 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 func (r *Resolver) User() generated.UserResolver { return &userResolver{r} }
 
 type carResolver struct{ *Resolver }
+type cartResolver struct{ *Resolver }
+type cartItemResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }

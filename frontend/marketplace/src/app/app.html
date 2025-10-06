@@ -1,16 +1,28 @@
-<!-- Navigation Bar -->
-<nav class="navbar">
+<!-- Navigation Bar - Solo mostrar si está autenticado Y no está en la página de login -->
+<nav class="navbar" *ngIf="isAuthenticated() && !isOnLoginPage()">
   <div class="nav-container">
     <div class="nav-brand">
-      <a routerLink="/" class="brand-link">{{ title() }}</a>
+      <a routerLink="/marketplace" class="brand-link">{{ title() }}</a>
     </div>
     <div class="nav-links">
-      <a routerLink="/" class="nav-link" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+      <a routerLink="/marketplace" class="nav-link" routerLinkActive="active">
         Ver Carros
       </a>
       <a routerLink="/vender" class="nav-link" routerLinkActive="active">
         Vender Carro
       </a>
+      <div class="user-menu">
+        <button class="user-button" (click)="toggleUserMenu()">
+          Gestionar Cuenta
+        </button>
+        <div class="user-dropdown" *ngIf="showUserMenu">
+          <a href="#" (click)="myPublications()" class="dropdown-item">Mis Publicaciones</a>
+          <a href="#" (click)="logout()" class="dropdown-item">Cerrar Sesión</a>
+        </div>
+      </div>
+      <button class="cart-button" (click)="openCart()">
+        Carrito ({{ cartItemCount() }})
+      </button>
     </div>
   </div>
 </nav>

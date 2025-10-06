@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { CarService } from '../services/car.service';
-import { CarInput, FuelType, TransmissionType } from '../interfaces/car.interface';
+import { CarInput, UpdateCarInput, FuelType, TransmissionType, Car } from '../interfaces/car.interface';
 
 @Component({
   selector: 'app-car-form',
@@ -17,6 +17,10 @@ export class CarFormComponent implements OnInit {
   submitError: string | null = null;
   submitSuccess = false;
   maxYear = new Date().getFullYear() + 1;
+  
+  // Edit mode properties
+  isEditMode = false;
+  editingCar: Car | null = null;
 
   // Opciones para los selects
   brands = [
@@ -48,7 +52,23 @@ export class CarFormComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Check if we're in edit mode
+    const navigation = this.router.getCurrentNavigation();
+    if (navigation?.extras.state) {
+      const state = navigation.extras.state;
+      if (state['editMode'] && state['carData']) {
+        this.isEditMode = true;
+        this.editingCar = state['carData'] as Car;
+        console.log('Edit mode activated for car:', this.editingCar?.title);
+      }
+    }
+    
     this.initializeForm();
+    
+    // If in edit mode, populate form with existing data
+    if (this.isEditMode && this.editingCar) {
+      this.populateFormForEdit(this.editingCar);
+    }
   }
 
   private initializeForm(): void {
@@ -87,6 +107,29 @@ export class CarFormComponent implements OnInit {
     });
   }
 
+  private populateFormForEdit(car: Car): void {
+    this.carForm.patchValue({
+      title: car.title,
+      description: car.description,
+      brand: car.brand,
+      model: car.model,
+      year: car.year,
+      fuelType: car.fuelType,
+      transmission: car.transmission,
+      mileage: car.mileage,
+      color: car.color,
+      price: car.price,
+      features: car.features.join(', '),
+      imageUrl: car.images[0] || '',
+      sellerName: car.seller.name,
+      sellerPhone: car.seller.phone || '',
+      sellerEmail: car.seller.email,
+      locationCity: car.location.city,
+      locationState: car.location.state,
+      locationCountry: car.location.country
+    });
+  }
+
   onSubmit(): void {
     if (this.carForm.valid && !this.isSubmitting) {
       this.isSubmitting = true;
@@ -100,46 +143,93 @@ export class CarFormComponent implements OnInit {
         formData.features.split(',').map((f: string) => f.trim()).filter((f: string) => f.length > 0) : 
         [];
 
-      const carInput: CarInput = {
-        title: formData.title,
-        description: formData.description || '',
-        brand: formData.brand,
-        model: formData.model,
-        year: parseInt(formData.year),
-        price: parseFloat(formData.price),
-        mileage: parseInt(formData.mileage),
-        color: formData.color,
-        fuelType: formData.fuelType as FuelType,
-        transmission: formData.transmission as TransmissionType,
-        images: [formData.imageUrl],
-        features: features,
-        sellerName: formData.sellerName,
-        sellerPhone: formData.sellerPhone,
-        sellerEmail: formData.sellerEmail,
-        location: {
-          city: formData.locationCity,
-          state: formData.locationState,
-          country: formData.locationCountry
-        }
-      };
+      if (this.isEditMode && this.editingCar) {
+        // Update existing car
+        const updateInput: UpdateCarInput = {
+          id: this.editingCar.id,
+          title: formData.title,
+          description: formData.description || '',
+          brand: formData.brand,
+          model: formData.model,
+          year: parseInt(formData.year),
+          price: parseFloat(formData.price),
+          mileage: parseInt(formData.mileage),
+          color: formData.color,
+          fuelType: formData.fuelType as FuelType,
+          transmission: formData.transmission as TransmissionType,
+          images: [formData.imageUrl],
+          features: features,
+          location: {
+            city: formData.locationCity,
+            state: formData.locationState,
+            country: formData.locationCountry
+          }
+        };
 
-      this.carService.createCar(carInput).subscribe({
-        next: (result) => {
-          this.isSubmitting = false;
-          this.submitSuccess = true;
-          this.submitError = null;
-          
-          // Opcional: redirigir después de 2 segundos
-          setTimeout(() => {
-            this.router.navigate(['/']);
-          }, 2000);
-        },
-        error: (error) => {
-          this.isSubmitting = false;
-          this.submitError = error.message || 'Error al crear el anuncio. Por favor intenta de nuevo.';
-          console.error('Error creating car:', error);
-        }
-      });
+        this.carService.updateCar(updateInput).subscribe({
+          next: (result) => {
+            this.isSubmitting = false;
+            this.submitSuccess = true;
+            this.submitError = null;
+            
+            console.log('Car updated successfully:', result);
+            
+            // Redirigir a mis publicaciones después del éxito
+            setTimeout(() => {
+              this.router.navigate(['/mis-publicaciones']);
+            }, 1500);
+          },
+          error: (error) => {
+            this.isSubmitting = false;
+            this.submitError = error.message || 'Error al actualizar el anuncio. Por favor intenta de nuevo.';
+            console.error('Error updating car:', error);
+          }
+        });
+      } else {
+        // Create new car
+        const carInput: CarInput = {
+          title: formData.title,
+          description: formData.description || '',
+          brand: formData.brand,
+          model: formData.model,
+          year: parseInt(formData.year),
+          price: parseFloat(formData.price),
+          mileage: parseInt(formData.mileage),
+          color: formData.color,
+          fuelType: formData.fuelType as FuelType,
+          transmission: formData.transmission as TransmissionType,
+          images: [formData.imageUrl],
+          features: features,
+          sellerName: formData.sellerName,
+          sellerPhone: formData.sellerPhone,
+          sellerEmail: formData.sellerEmail,
+          location: {
+            city: formData.locationCity,
+            state: formData.locationState,
+            country: formData.locationCountry
+          }
+        };
+
+        this.carService.createCar(carInput).subscribe({
+          next: (result) => {
+            this.isSubmitting = false;
+            this.submitSuccess = true;
+            this.submitError = null;
+            
+            console.log('Car created successfully:', result);
+            
+            // Redirigir al marketplace inmediatamente después del éxito
+            setTimeout(() => {
+              this.router.navigate(['/marketplace']);
+            }, 500);
+          },
+          error: (error) => {
+            this.isSubmitting = false;
+            this.submitError = error.message || 'Error al crear el anuncio. Por favor intenta de nuevo.';
+            console.error('Error creating car:', error);
+          }
+        });
+      }
     } else {
       // Marcar todos los campos como touched para mostrar errores
       this.markFormGroupTouched(this.carForm);

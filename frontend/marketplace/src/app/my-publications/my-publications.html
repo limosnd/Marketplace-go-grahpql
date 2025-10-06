@@ -1,0 +1,132 @@
+<!-- Header -->
+<div class="publications-header">
+  <div class="header-content">
+    <h1 class="page-title">📄 Mis Publicaciones</h1>
+    <button class="btn-back" (click)="goBack()">
+      ← Volver al Marketplace
+    </button>
+  </div>
+</div>
+
+<!-- Loading State -->
+<div class="loading" *ngIf="loading">
+  <div class="loading-spinner">⏳</div>
+  <p>Cargando tus publicaciones...</p>
+</div>
+
+<!-- Error State -->
+<div class="error" *ngIf="error && !loading">
+  <div class="error-icon">⚠️</div>
+  <h2>Error al cargar tus publicaciones</h2>
+  <p>{{ error }}</p>
+  <button class="btn-retry" (click)="loadMyCars()">Reintentar</button>
+</div>
+
+<!-- Empty State -->
+<div class="empty-publications" *ngIf="!loading && !error && cars.length === 0">
+  <div class="empty-icon">📝</div>
+  <h2>No tienes publicaciones</h2>
+  <p>¡Comienza a vender tus carros publicando tu primer anuncio!</p>
+  <button class="btn-primary" (click)="goToSell()">
+    Publicar Primer Carro
+  </button>
+</div>
+
+<!-- Publications Grid -->
+<div class="publications-container" *ngIf="!loading && !error && cars.length > 0">
+  
+  <!-- Summary -->
+  <div class="publications-summary">
+    <h2>Tienes {{ total }} publicacion{{ total !== 1 ? 'es' : '' }}</h2>
+    <p>Página {{ currentPage }} de {{ totalPages }}</p>
+  </div>
+
+  <!-- Cars Grid -->
+  <div class="publications-grid">
+    <div class="publication-card" *ngFor="let car of cars">
+      
+      <!-- Car Image -->
+      <div class="car-image">
+        <img 
+          [src]="car.images[0] || 'https://via.placeholder.com/300x200?text=Sin+Imagen'" 
+          [alt]="car.title"
+          class="car-thumbnail"
+          loading="lazy">
+        <div class="status-badge" [ngClass]="'status-' + car.status.toLowerCase()">
+          {{ getStatusLabel(car.status) }}
+        </div>
+      </div>
+      
+      <!-- Car Info -->
+      <div class="car-info">
+        <h3 class="car-title">{{ car.title }}</h3>
+        
+        <div class="car-details">
+          <div class="detail-row">
+            <span class="label">Precio:</span>
+            <span class="value price">{{ formatPrice(car.price) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Año:</span>
+            <span class="value">{{ car.year }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Kilometraje:</span>
+            <span class="value">{{ formatMileage(car.mileage) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Combustible:</span>
+            <span class="value">{{ getFuelTypeLabel(car.fuelType) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Transmisión:</span>
+            <span class="value">{{ getTransmissionLabel(car.transmission) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Ubicación:</span>
+            <span class="value">{{ car.location.city }}, {{ car.location.state }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Publicado:</span>
+            <span class="value">{{ car.createdAt | date:'short' }}</span>
+          </div>
+        </div>
+        
+        <div class="car-description" *ngIf="car.description">
+          <p>{{ car.description }}</p>
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="car-actions">
+        <button 
+          class="btn btn-view" 
+          (click)="viewCarDetails(car)"
+          title="Ver detalles completos">
+          👁️ Ver Detalles
+        </button>
+        <button 
+          class="btn btn-edit" 
+          (click)="editCar(car)"
+          title="Editar publicación">
+          ✏️ Editar
+        </button>
+        <button 
+          class="btn btn-delete" 
+          (click)="deleteCar(car)"
+          title="Eliminar publicación">
+          🗑️ Eliminar
+        </button>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- Load More Button -->
+  <div class="load-more" *ngIf="currentPage < totalPages">
+    <button class="btn-load-more" (click)="loadMoreCars()" [disabled]="loading">
+      {{ loading ? 'Cargando...' : 'Cargar Más Publicaciones' }}
+    </button>
+  </div>
+
+</div>

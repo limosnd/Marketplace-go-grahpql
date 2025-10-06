@@ -1,0 +1,133 @@
+<div class="auth-container">
+  <div class="auth-header">
+    <h1 class="welcome-title">Bienvenido al Marketplace de Carros</h1>
+    <p class="welcome-subtitle">Encuentra el carro de tus sueños o vende el tuyo</p>
+  </div>
+
+  <div class="auth-tabs">
+    <button 
+      [class.active]="isLoginMode" 
+      (click)="setMode(true)"
+      class="tab-button">
+      Iniciar Sesión
+    </button>
+    <button 
+      [class.active]="!isLoginMode" 
+      (click)="setMode(false)"
+      class="tab-button">
+      Registrarse
+    </button>
+  </div>
+
+  <!-- Formulario de Login -->
+  <div *ngIf="isLoginMode" class="auth-form">
+    <h2>Iniciar Sesión</h2>
+    <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+      <div class="form-group">
+        <label for="loginEmail">Correo Electrónico</label>
+        <input 
+          type="email" 
+          id="loginEmail"
+          formControlName="email"
+          placeholder="tu@email.com"
+          required>
+        <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="error-message">
+          Correo electrónico es requerido
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="loginPassword">Contraseña</label>
+        <input 
+          type="password" 
+          id="loginPassword"
+          formControlName="password"
+          placeholder="••••••••"
+          required>
+        <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="error-message">
+          Contraseña es requerida
+        </div>
+      </div>
+
+      <button 
+        type="submit" 
+        class="auth-button"
+        [disabled]="loginForm.invalid || loading">
+        <span *ngIf="loading">Ingresando...</span>
+        <span *ngIf="!loading">Ingresar</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- Formulario de Registro -->
+  <div *ngIf="!isLoginMode" class="auth-form">
+    <h2>Crear Cuenta</h2>
+    <form [formGroup]="registerForm" (ngSubmit)="onRegister()">
+      <div class="form-group">
+        <label for="registerName">Nombre Completo</label>
+        <input 
+          type="text" 
+          id="registerName"
+          formControlName="name"
+          placeholder="Juan Pérez"
+          required>
+        <div *ngIf="registerForm.get('name')?.invalid && registerForm.get('name')?.touched" class="error-message">
+          Nombre completo es requerido
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="registerEmail">Correo Electrónico</label>
+        <input 
+          type="email" 
+          id="registerEmail"
+          formControlName="email"
+          placeholder="tu@email.com"
+          required>
+        <div *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched" class="error-message">
+          Correo electrónico válido es requerido
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="registerPassword">Contraseña</label>
+        <input 
+          type="password" 
+          id="registerPassword"
+          formControlName="password"
+          placeholder="••••••••"
+          required>
+        <div *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched" class="error-message">
+          Contraseña debe tener al menos 6 caracteres
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="registerPhone">Teléfono (Opcional)</label>
+        <input 
+          type="tel" 
+          id="registerPhone"
+          formControlName="phone"
+          placeholder="+57 300 123 4567">
+      </div>
+
+      <button 
+        type="submit" 
+        class="auth-button"
+        [disabled]="registerForm.invalid || loading">
+        <span *ngIf="loading">Creando cuenta...</span>
+        <span *ngIf="!loading">Crear Cuenta</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- Mensajes de error -->
+  <div *ngIf="errorMessage" class="error-alert">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Mensaje de éxito -->
+  <div *ngIf="successMessage" class="success-alert">
+    {{ successMessage }}
+  </div>
+</div>

@@ -117,10 +117,97 @@ export const CREATE_CAR = gql`
   }
 `;
 
+// Delete car mutation
+export const DELETE_CAR = gql`
+  mutation DeleteCar($id: ID!) {
+    deleteCar(id: $id)
+  }
+`;
+
+// Update car mutation
+export const UPDATE_CAR = gql`
+  mutation UpdateCar($input: UpdateCarInput!) {
+    updateCar(input: $input) {
+      id
+      title
+      description
+      brand
+      model
+      year
+      price
+      mileage
+      color
+      fuelType
+      transmission
+      status
+      images
+      seller {
+        id
+        name
+        email
+        phone
+      }
+      location {
+        city
+        state
+        country
+        lat
+        lng
+      }
+      features
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
 // Search cars query
 export const SEARCH_CARS = gql`
   query SearchCars($query: String!, $page: Int, $limit: Int) {
     searchCars(query: $query, page: $page, limit: $limit) {
+      cars {
+        id
+        title
+        description
+        brand
+        model
+        year
+        price
+        mileage
+        color
+        fuelType
+        transmission
+        status
+        images
+        seller {
+          id
+          name
+          email
+          phone
+        }
+        location {
+          city
+          state
+          country
+          lat
+          lng
+        }
+        features
+        createdAt
+        updatedAt
+      }
+      total
+      page
+      limit
+      totalPages
+    }
+  }
+`;
+
+// Get my publications query - uses current user from authentication context
+export const GET_MY_CARS = gql`
+  query GetMyCars($page: Int, $limit: Int) {
+    cars(page: $page, limit: $limit) {
       cars {
         id
         title

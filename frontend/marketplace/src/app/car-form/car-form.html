@@ -1,21 +1,21 @@
 <div class="car-form-container">
   <!-- Header -->
   <div class="header">
-    <h1 class="title">Vender tu Carro</h1>
-    <p class="subtitle">Completa los datos de tu vehículo para publicar tu anuncio</p>
+    <h1 class="title">{{ isEditMode ? 'Editar Publicación' : 'Vender tu Carro' }}</h1>
+    <p class="subtitle">{{ isEditMode ? 'Actualiza los datos de tu vehículo' : 'Completa los datos de tu vehículo para publicar tu anuncio' }}</p>
   </div>
 
   <!-- Success Message -->
   <div *ngIf="submitSuccess" class="success-message">
     <div class="success-icon">✓</div>
-    <h3>¡Anuncio creado exitosamente!</h3>
-    <p>Tu carro ha sido publicado en el marketplace. Serás redirigido en unos segundos...</p>
+    <h3>{{ isEditMode ? '¡Anuncio actualizado exitosamente!' : '¡Anuncio creado exitosamente!' }}</h3>
+    <p>{{ isEditMode ? 'Tu carro ha sido actualizado. Serás redirigido en unos segundos...' : 'Tu carro ha sido publicado en el marketplace. Serás redirigido en unos segundos...' }}</p>
   </div>
 
   <!-- Error Message -->
   <div *ngIf="submitError" class="error-message">
     <div class="error-icon">✕</div>
-    <h3>Error al crear el anuncio</h3>
+    <h3>{{ isEditMode ? 'Error al actualizar el anuncio' : 'Error al crear el anuncio' }}</h3>
     <p>{{ submitError }}</p>
     <button class="btn btn-outline" (click)="submitError = null">Cerrar</button>
   </div>
@@ -302,8 +302,8 @@
         type="submit" 
         class="btn btn-primary" 
         [disabled]="carForm.invalid || isSubmitting">
-        <span *ngIf="isSubmitting">Publicando...</span>
-        <span *ngIf="!isSubmitting">Publicar Anuncio</span>
+        <span *ngIf="isSubmitting">{{ isEditMode ? 'Actualizando...' : 'Publicando...' }}</span>
+        <span *ngIf="!isSubmitting">{{ isEditMode ? 'Actualizar Anuncio' : 'Publicar Anuncio' }}</span>
       </button>
     </div>
   </form>

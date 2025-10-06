@@ -1,0 +1,122 @@
+<div class="cart-container">
+  <!-- Header -->
+  <div class="cart-header">
+    <h1 class="cart-title">🛒 Mi Carrito de Compras</h1>
+    <button class="btn-back" (click)="continueShopping()">
+      ← Continuar Comprando
+    </button>
+  </div>
+
+  <!-- Loading state -->
+  <div *ngIf="loading" class="loading">
+    <div class="loading-spinner">⟳</div>
+    <p>Cargando carrito...</p>
+  </div>
+
+  <!-- Empty cart state -->
+  <div *ngIf="!loading && cartItems.length === 0" class="empty-cart">
+    <div class="empty-icon">🛒</div>
+    <h2>Tu carrito está vacío</h2>
+    <p>¡Agrega algunos carros increíbles a tu carrito!</p>
+    <button class="btn btn-primary" (click)="continueShopping()">
+      Explorar Carros
+    </button>
+  </div>
+
+  <!-- Cart items -->
+  <div *ngIf="!loading && cartItems.length > 0" class="cart-content">
+    <div class="cart-items">
+      <div class="cart-item" *ngFor="let item of cartItems">
+        <div class="item-image">
+          <img 
+            [src]="item.car.images[0] || 'https://via.placeholder.com/150x100/333/fff?text=No+Image'" 
+            [alt]="item.car.title"
+            class="car-thumbnail">
+        </div>
+
+        <div class="item-details">
+          <h3 class="item-title">{{ item.car.title }}</h3>
+          <div class="item-info">
+            <p><strong>Marca:</strong> {{ item.car.brand }} {{ item.car.model }}</p>
+            <p><strong>Año:</strong> {{ item.car.year }}</p>
+            <p><strong>Kilometraje:</strong> {{ formatMileage(item.car.mileage) }}</p>
+            <p><strong>Ubicación:</strong> {{ item.car.location.city }}, {{ item.car.location.state }}</p>
+          </div>
+          <div class="item-seller">
+            <p><strong>Vendedor:</strong> {{ item.car.seller.name }}</p>
+            <p *ngIf="item.car.seller.phone"><strong>Teléfono:</strong> {{ item.car.seller.phone }}</p>
+          </div>
+        </div>
+
+        <div class="item-price">
+          <p class="unit-price">{{ formatPrice(item.car.price) }} c/u</p>
+        </div>
+
+        <div class="item-quantity">
+          <label for="quantity-{{ item.car.id }}">Cantidad:</label>
+          <div class="quantity-controls">
+            <button 
+              class="qty-btn" 
+              (click)="updateQuantity(item.car.id, item.quantity - 1)"
+              [disabled]="item.quantity <= 1">
+              -
+            </button>
+            <span class="quantity">{{ item.quantity }}</span>
+            <button 
+              class="qty-btn" 
+              (click)="updateQuantity(item.car.id, item.quantity + 1)">
+              +
+            </button>
+          </div>
+        </div>
+
+        <div class="item-total">
+          <p class="total-price">{{ formatPrice(item.car.price * item.quantity) }}</p>
+          <button 
+            class="btn-remove" 
+            (click)="removeFromCart(item.car.id)"
+            title="Remover del carrito">
+            🗑️
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cart summary -->
+    <div class="cart-summary">
+      <div class="summary-header">
+        <h2>Resumen del Pedido</h2>
+      </div>
+      
+      <div class="summary-details">
+        <div class="summary-row">
+          <span>Artículos ({{ cartItems.length }}):</span>
+          <span>{{ formatPrice(totalPrice) }}</span>
+        </div>
+        <div class="summary-row">
+          <span>Envío:</span>
+          <span>Gratis</span>
+        </div>
+        <div class="summary-row total-row">
+          <span><strong>Total:</strong></span>
+          <span><strong>{{ formatPrice(totalPrice) }}</strong></span>
+        </div>
+      </div>
+
+      <div class="summary-actions">
+        <button 
+          class="btn btn-primary btn-checkout" 
+          (click)="proceedToCheckout()"
+          [disabled]="cartItems.length === 0">
+          💳 Proceder al Pago
+        </button>
+        <button 
+          class="btn btn-secondary btn-clear" 
+          (click)="clearCart()"
+          [disabled]="cartItems.length === 0">
+          🗑️ Vaciar Carrito
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

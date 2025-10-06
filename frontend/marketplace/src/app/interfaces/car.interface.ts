@@ -115,6 +115,24 @@ export interface CarFilterInput {
   state?: string;
 }
 
+export interface UpdateCarInput {
+  id: string;
+  title?: string;
+  description?: string;
+  brand?: string;
+  model?: string;
+  year?: number;
+  price?: number;
+  mileage?: number;
+  color?: string;
+  fuelType?: FuelType;
+  transmission?: TransmissionType;
+  status?: CarStatus;
+  images?: string[];
+  location?: LocationInput;
+  features?: string[];
+}
+
 // GraphQL response types
 export interface GetCarsQueryResponse {
   cars: CarsResponse;
@@ -130,6 +148,18 @@ export interface CreateCarMutationResponse {
 
 export interface SearchCarsQueryResponse {
   searchCars: CarsResponse;
+}
+
+export interface GetMyCarsQueryResponse {
+  cars: CarsResponse;
+}
+
+export interface DeleteCarMutationResponse {
+  deleteCar: boolean;
+}
+
+export interface UpdateCarMutationResponse {
+  updateCar: Car;
 }
 
 export interface HealthCheckResponse {
