@@ -1,0 +1,38 @@
+
+services:
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=marketplace
+
+  backend:
+    build: ./backend
+    container_name: go-backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongo
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/marketplace
+    restart: on-failure
+
+  frontend:
+    build: ./frontend
+    container_name: angular-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    restart: always
+    environment:
+    - NODE_ENV=production
+
+volumes:
+  mongo_data:
+
